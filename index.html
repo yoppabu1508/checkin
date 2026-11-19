@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Yoppa' ลงเวลา</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+  :root {
+    --orange: #E67E22; --orange-d: #C96512; --orange-l: #FDF0E4;
+    --green: #22C55E; --red: #EF4444; --yellow: #F59E0B;
+    --ink: #2B2420; --muted: #8A7F78; --line: #EEE6DF; --bg: #FBF7F3;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { margin: 0; font-family: 'Prompt', sans-serif; background: var(--bg); color: var(--ink); font-size: 15px; }
+  header { background: linear-gradient(135deg, var(--orange), var(--orange-d)); color: #fff; padding: 18px 18px 54px; }
+  header .shop { font-size: 13px; opacity: .85; }
+  header .hello { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+  header img { width: 44px; height: 44px; border-radius: 50%; border: 2px solid #fff8; object-fit: cover; }
+  header .name { font-size: 18px; font-weight: 600; }
+  header .sub { font-size: 13px; opacity: .85; }
+  main { margin-top: -38px; padding: 0 14px 90px; }
+  .card { background: #fff; border-radius: 18px; padding: 18px; box-shadow: 0 4px 18px #0000000d; margin-bottom: 14px; }
+  .clock { text-align: center; }
+  .clock .time { font-size: 52px; font-weight: 700; letter-spacing: 1px; line-height: 1.1; }
+  .clock .date { color: var(--muted); margin-top: 2px; }
+  .shift { display: inline-block; margin-top: 10px; background: var(--orange-l); color: var(--orange-d); padding: 4px 12px; border-radius: 99px; font-size: 13px; }
+  .bigbtn { width: 100%; border: 0; border-radius: 16px; padding: 20px; font-family: inherit; font-size: 22px; font-weight: 600; color: #fff; margin-top: 16px; box-shadow: 0 6px 16px #0000001a; }
+  .bigbtn.in { background: var(--green); }
+  .bigbtn.out { background: var(--orange); }
+  .bigbtn:disabled { background: #D6CEC8; box-shadow: none; }
+  .status { display: flex; gap: 10px; margin-top: 14px; }
+  .status div { flex: 1; background: var(--bg); border-radius: 12px; padding: 10px; text-align: center; }
+  .status b { display: block; font-size: 20px; }
+  .status span { font-size: 12px; color: var(--muted); }
+  .hint { font-size: 13px; color: var(--muted); text-align: center; margin-top: 10px; }
+  h3 { margin: 0 0 12px; font-size: 17px; }
+  label { display: block; font-size: 13px; color: var(--muted); margin: 12px 0 4px; }
+  input, select, textarea { width: 100%; font-family: inherit; font-size: 16px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: #fff; color: var(--ink); }
+  textarea { min-height: 70px; resize: vertical; }
+  .row2 { display: flex; gap: 10px; } .row2 > div { flex: 1; }
+  .btn { width: 100%; border: 0; border-radius: 12px; padding: 14px; font-family: inherit; font-size: 16px; font-weight: 600; color: #fff; background: var(--orange); margin-top: 16px; }
+  .btn.ghost { background: var(--orange-l); color: var(--orange-d); }
+  .item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); gap: 10px; }
+  .item:last-child { border-bottom: 0; }
+  .item .t { font-weight: 500; }
+  .item .s { font-size: 13px; color: var(--muted); }
+  .chip { font-size: 12px; padding: 3px 10px; border-radius: 99px; white-space: nowrap; }
+  .chip.g { background: #DCFCE7; color: #15803D; } .chip.r { background: #FEE2E2; color: #B91C1C; }
+  .chip.y { background: #FEF3C7; color: #B45309; } .chip.n { background: #F1ECE8; color: var(--muted); }
+  nav { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; display: flex; border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom); z-index: 5; }
+  nav button { flex: 1; border: 0; background: none; font-family: inherit; font-size: 12px; color: var(--muted); padding: 8px 0 10px; }
+  nav button .ic { display: block; font-size: 22px; margin-bottom: 2px; }
+  nav button.on { color: var(--orange); font-weight: 600; }
+  .empty { text-align: center; color: var(--muted); padding: 20px 0; }
+  .code { font-size: 26px; font-weight: 700; letter-spacing: 4px; color: var(--orange-d); text-align: center; background: var(--orange-l); border-radius: 12px; padding: 10px; }
+  #overlay { position: fixed; inset: 0; background: #0006; display: none; align-items: center; justify-content: center; z-index: 20; }
+  #overlay div { background: #fff; padding: 22px 28px; border-radius: 16px; font-weight: 500; text-align: center; }
+  #toast { position: fixed; left: 16px; right: 16px; bottom: 90px; background: var(--ink); color: #fff; padding: 14px 16px; border-radius: 14px; font-size: 15px; display: none; z-index: 30; text-align: center; }
+  #toast.err { background: var(--red); }
+  .spinner { width: 28px; height: 28px; border: 3px solid var(--orange-l); border-top-color: var(--orange); border-radius: 50%; animation: sp 1s linear infinite; margin: 0 auto 10px; }
+  @keyframes sp { to { transform: rotate(360deg); } }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="shop" id="shopName">Yoppa'</div>
+  <div class="hello">
+    <img id="avatar" src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" alt="">
+    <div><div class="name" id="hello">กำลังโหลด...</div><div class="sub" id="helloSub"></div></div>
+  </div>
+</header>
+
+<main>
+  <div id="loading" class="card"><div class="spinner"></div><div class="empty">กำลังโหลด...</div></div>
+  <div id="fatal" class="card" hidden></div>
+
+  <!-- ลงทะเบียน -->
+  <section id="view-register" hidden>
+    <div class="card">
+      <h3>ลงทะเบียนพนักงาน 📝</h3>
+      <label>ชื่อ-นามสกุล</label><input id="rName" autocomplete="name">
+      <div class="row2">
+        <div><label>ชื่อเล่น</label><input id="rNick"></div>
+        <div><label>เบอร์โทร</label><input id="rPhone" type="tel" inputmode="numeric"></div>
+      </div>
+      <div class="row2">
+        <div><label>ประเภท</label><select id="rType"><option>ประจำ</option><option selected>ชั่วคราว</option></select></div>
+      </div>
+      <div class="hint" style="text-align:left">ชื่อเล่นต้องสะกดเหมือนในตารางงานของร้าน</div>
+      <label>รหัสร้าน (ขอจากหัวหน้า)</label><input id="rCode" autocapitalize="characters">
+      <button class="btn" onclick="doRegister()">ลงทะเบียน</button>
+    </div>
+  </section>
+
+  <!-- ลงเวลา -->
+  <section id="view-clock" hidden>
+    <div class="card clock">
+      <div class="time" id="nowTime">--:--</div>
+      <div class="date" id="nowDate"></div>
+      <div class="shift" id="shiftInfo"></div>
+      <div class="status">
+        <div><b id="sIn">--:--</b><span>เข้างาน</span></div>
+        <div><b id="sOut">--:--</b><span>ออกงาน</span></div>
+        <div><b id="sHours">-</b><span>ชั่วโมง</span></div>
+      </div>
+      <button class="bigbtn in" id="clockBtn" onclick="onClockTap()">เข้างาน</button>
+      <div class="hint" id="clockHint"></div>
+    </div>
+  </section>
+
+  <!-- ประวัติ -->
+  <section id="view-history" hidden>
+    <div class="card"><h3>ประวัติลงเวลา (31 วันล่าสุด)</h3><div id="histList"></div></div>
+  </section>
+
+  <!-- ขอลา -->
+  <section id="view-leave" hidden>
+    <div class="card">
+      <h3>ยื่นใบลา 🏖</h3>
+      <label>ประเภทการลา</label>
+      <select id="lType"><option>ลาป่วย</option><option>ลากิจ</option><option>ลาพักร้อน</option><option>ลาไม่รับค่าจ้าง</option></select>
+      <div class="row2">
+        <div><label>ตั้งแต่วันที่</label><input id="lStart" type="date"></div>
+        <div><label>ถึงวันที่</label><input id="lEnd" type="date"></div>
+      </div>
+      <label>เหตุผล</label><textarea id="lReason" placeholder="เช่น ไม่สบาย มีไข้"></textarea>
+      <button class="btn" onclick="doLeave()">ส่งคำขอ</button>
+    </div>
+    <div class="card"><h3>คำขอของฉัน</h3><div id="reqList"></div></div>
+  </section>
+
+  <!-- แอดมิน -->
+  <section id="view-admin" hidden>
+    <div class="card">
+      <h3>วันนี้ 📋</h3>
+      <div id="adminPending" class="hint" style="text-align:left;margin:0 0 6px"></div>
+      <div id="adminList"></div>
+    </div>
+    <div class="card">
+      <h3>รหัสร้านสำหรับพนักงานใหม่</h3>
+      <div class="code" id="joinCode">------</div>
+      <div class="hint">ส่งรหัสนี้ให้พนักงานใช้ตอนลงทะเบียน</div>
+    </div>
+    <div class="card">
+      <h3>ตำแหน่งร้าน 📍</h3>
+      <div class="hint" style="text-align:left" id="shopHint"></div>
+      <button class="btn ghost" onclick="doSetShop(this)">ตั้งตำแหน่งร้าน = จุดที่ยืนอยู่ตอนนี้</button>
+    </div>
+  </section>
+</main>
+
+<nav id="tabs" hidden>
+  <button data-tab="clock"><span class="ic">⏰</span>ลงเวลา</button>
+  <button data-tab="history"><span class="ic">🗓</span>ประวัติ</button>
+  <button data-tab="leave"><span class="ic">🏖</span>ขอลา</button>
+  <button data-tab="admin" hidden><span class="ic">🛡</span>แอดมิน</button>
+</nav>
+
+<input type="file" id="cam" accept="image/*" capture="user" hidden>
+<div id="overlay"><div><div class="spinner"></div><span id="overlayText">กำลังทำงาน...</span></div></div>
+<div id="toast"></div>
+
+<script>
+/* =========================================================
+   ตั้งค่า 2 บรรทัดนี้ (ดูคู่มือขั้นตอนที่ 6)
+   ========================================================= */
+const CONFIG = {
+  LIFF_ID: '2012701709-K9H2ADxr',
+  API_URL: 'https://script.google.com/macros/s/AKfycbyZj7tqDE9Lzn9BmXjAVhhRI6VgfTuFQYRH8XXXtUcV1cO4Fv6FRAfyzyeN69l7E4_y/exec',
+};
+
+/* ===================== ไม่ต้องแก้ด้านล่าง ===================== */
+let S = {};            // ข้อมูลจาก init
+let pendingKind = null;
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+async function api(action, data = {}) {
+  const res = await fetch(CONFIG.API_URL, {
+    method: 'POST',
+    body: JSON.stringify(Object.assign({ action, idToken: liff.getIDToken() }, data)),
+  });
+  const j = await res.json();
+  if (!j.ok) {
+    if (String(j.error).indexOf('TOKEN_') === 0) {
+      let tried = false; try { tried = sessionStorage.getItem('reloaded'); sessionStorage.setItem('reloaded', '1'); } catch (e) {}
+      if (!tried) { location.reload(); throw new Error('กำลังโหลดใหม่...'); }
+    }
+    throw new Error(j.error);
+  }
+  try { sessionStorage.removeItem('reloaded'); } catch (e) {}
+  return j.data;
+}
+
+async function main() {
+  try {
+    if (CONFIG.LIFF_ID.indexOf('ใส่') === 0) throw new Error('ยังไม่ได้ใส่ LIFF_ID / API_URL ในไฟล์ index.html');
+    await liff.init({ liffId: CONFIG.LIFF_ID });
+    if (!liff.isLoggedIn()) { liff.login(); return; }
+    S = await api('init');
+    $('#loading').hidden = true;
+    renderHeader();
+    if (!S.employee) {
+      $('#view-register').hidden = false;
+      if (S.isAdmin) { $('#tabs').hidden = false; setupTabs(); showTab('admin'); }
+      return;
+    }
+    $('#tabs').hidden = false;
+    setupTabs();
+    const page = new URLSearchParams(location.search).get('page');
+    showTab(['clock', 'history', 'leave', 'admin'].includes(page) ? page : 'clock');
+  } catch (e) {
+    $('#loading').hidden = true;
+    $('#fatal').hidden = false;
+    $('#fatal').innerHTML = `<h3>เปิดระบบไม่สำเร็จ 😢</h3><div class="s">${esc(e.message)}</div>`;
+    $('#hello').textContent = 'เกิดข้อผิดพลาด';
+  }
+}
+
+function renderHeader() {
+  $('#shopName').textContent = S.shopName || "Yoppa'";
+  if (S.picture) $('#avatar').src = S.picture;
+  const e = S.employee;
+  $('#hello').textContent = e ? `สวัสดี ${e.nick || e.name}` : `สวัสดี ${S.lineName}`;
+  $('#helloSub').textContent = e ? `พนักงาน${e.type}` : (S.isAdmin ? 'แอดมิน' : 'ยังไม่ได้ลงทะเบียน');
+}
+
+function setupTabs() {
+  document.querySelectorAll('nav button').forEach(b => {
+    if (b.dataset.tab === 'admin') b.hidden = !S.isAdmin;
+    if (['clock', 'history', 'leave'].includes(b.dataset.tab) && !S.employee) b.hidden = true;
+    b.onclick = () => showTab(b.dataset.tab);
+  });
+}
+
+function showTab(tab) {
+  ['clock', 'history', 'leave', 'admin'].forEach(t => { $('#view-' + t).hidden = t !== tab; });
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+  if (tab === 'clock') renderClock();
+  if (tab === 'history') loadHistory();
+  if (tab === 'leave') loadRequests();
+  if (tab === 'admin') loadAdmin();
+}
+
+/* ---------- ลงเวลา ---------- */
+setInterval(tick, 1000); tick();
+function tick() {
+  const d = new Date();
+  $('#nowTime').textContent = d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  $('#nowDate').textContent = d.toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function renderClock() {
+  const e = S.employee, t = S.today, si = e.shiftInfo;
+  $('#shiftInfo').textContent = !si ? 'ยังไม่มีตารางงาน'
+    : si.off ? 'วันนี้วันหยุดตามตาราง 💤'
+    : `วันนี้ ${si.start} – ${si.end}` + (si.brkStart ? ` (เบรก ${si.brkStart}–${si.brkEnd})` : '');
+  $('#sIn').textContent = t && t.in ? t.in : '--:--';
+  $('#sOut').textContent = t && t.out ? t.out : '--:--';
+  $('#sHours').textContent = t && t.hours ? t.hours : '-';
+  const btn = $('#clockBtn');
+  btn.disabled = false;
+  if (!t) { btn.textContent = '🟢 เข้างาน'; btn.className = 'bigbtn in'; pendingKind = 'in'; }
+  else if (!t.out) { btn.textContent = '🟠 ออกงาน'; btn.className = 'bigbtn out'; pendingKind = 'out'; }
+  else { btn.textContent = 'ลงเวลาครบแล้ววันนี้ ✓'; btn.disabled = true; pendingKind = null; }
+  $('#clockHint').textContent = !S.shopSet ? '⚠️ แอดมินยังไม่ได้ตั้งตำแหน่งร้าน'
+    : (t && t.late ? `วันนี้สาย ${t.late} นาที` : (S.requirePhoto && pendingKind ? 'กดปุ่มแล้วถ่ายเซลฟี่ 1 รูป 📸' : ''));
+}
+
+function onClockTap() {
+  if (!pendingKind) return;
+  if (S.requirePhoto) { $('#cam').value = ''; $('#cam').click(); }
+  else doClock(null);
+}
+$('#cam').addEventListener('change', e => { const f = e.target.files[0]; if (f) doClock(f); });
+
+async function doClock(file) {
+  try {
+    busy('กำลังหาตำแหน่ง GPS...');
+    const pos = await getPos();
+    let photo = null;
+    if (file) { busy('กำลังเตรียมรูป...'); photo = await compress(file); }
+    busy('กำลังบันทึก...');
+    const r = await api('clock', { kind: pendingKind, lat: pos.lat, lng: pos.lng, accuracy: pos.accuracy, photo });
+    S = await api('init');
+    renderClock();
+    done(); toast(r.message);
+  } catch (e) { done(); toast(e.message, true); }
+}
+
+function getPos() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) return reject(new Error('เครื่องนี้ไม่รองรับ GPS'));
+    navigator.geolocation.getCurrentPosition(
+      p => resolve({ lat: p.coords.latitude, lng: p.coords.longitude, accuracy: p.coords.accuracy }),
+      err => reject(new Error(err.code === 1
+        ? 'กรุณาอนุญาตให้ LINE เข้าถึงตำแหน่ง (ตั้งค่ามือถือ › LINE › ตำแหน่ง) แล้วลองใหม่'
+        : 'หาตำแหน่งไม่เจอ ลองออกมาใกล้หน้าต่าง/เปิด GPS แล้วกดใหม่')),
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+  });
+}
+
+function compress(file, max = 640, q = 0.6) {
+  return new Promise((resolve, reject) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const s = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL('image/jpeg', q));
+    };
+    img.onerror = () => reject(new Error('อ่านรูปไม่ได้ ลองถ่ายใหม่'));
+    img.src = url;
+  });
+}
+
+/* ---------- ประวัติ ---------- */
+async function loadHistory() {
+  $('#histList').innerHTML = '<div class="spinner"></div>';
+  try {
+    const rows = await api('history');
+    $('#histList').innerHTML = rows.length ? rows.map(r => `
+      <div class="item">
+        <div><div class="t">${thDate(r.date)}</div><div class="s">${esc(r.in || '--:--')} – ${esc(r.out || '--:--')}${r.hours ? ` • ${esc(r.hours)} ชม.` : ''}</div></div>
+        ${r.late ? `<span class="chip y">สาย ${r.late} น.</span>` : (r.out ? '<span class="chip g">ปกติ</span>' : '<span class="chip r">ไม่ได้กดออก</span>')}
+      </div>`).join('') : '<div class="empty">ยังไม่มีประวัติ</div>';
+  } catch (e) { $('#histList').innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+}
+
+/* ---------- ขอลา ---------- */
+async function loadRequests() {
+  if (!$('#lStart').value) { const t = ymd(new Date()); $('#lStart').value = t; $('#lEnd').value = t; }
+  $('#reqList').innerHTML = '<div class="spinner"></div>';
+  try {
+    const rows = await api('myRequests');
+    const chip = s => s === 'อนุมัติ' ? 'g' : s === 'ไม่อนุมัติ' ? 'r' : 'y';
+    $('#reqList').innerHTML = rows.length ? rows.map(r => `
+      <div class="item">
+        <div><div class="t">${esc(r.type)} • ${esc(r.days)} วัน</div>
+        <div class="s">${thDate(r.start)}${r.end !== r.start ? ' – ' + thDate(r.end) : ''}${r.reason ? ' • ' + esc(r.reason) : ''}</div></div>
+        <span class="chip ${chip(r.status)}">${esc(r.status)}</span>
+      </div>`).join('') : '<div class="empty">ยังไม่มีคำขอ</div>';
+  } catch (e) { $('#reqList').innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+}
+
+async function doLeave() {
+  try {
+    busy('กำลังส่งคำขอ...');
+    const r = await api('leave', { type: $('#lType').value, start: $('#lStart').value, end: $('#lEnd').value, reason: $('#lReason').value });
+    $('#lReason').value = '';
+    done(); toast(r.message); loadRequests();
+  } catch (e) { done(); toast(e.message, true); }
+}
+
+/* ---------- ลงทะเบียน ---------- */
+async function doRegister() {
+  try {
+    busy('กำลังลงทะเบียน...');
+    S = await api('register', { name: $('#rName').value, nick: $('#rNick').value, phone: $('#rPhone').value, type: $('#rType').value, joinCode: $('#rCode').value });
+    done();
+    $('#view-register').hidden = true;
+    renderHeader(); $('#tabs').hidden = false; setupTabs(); showTab('clock');
+    toast('ลงทะเบียนสำเร็จ 🎉');
+  } catch (e) { done(); toast(e.message, true); }
+}
+
+/* ---------- แอดมิน ---------- */
+async function loadAdmin() {
+  $('#adminList').innerHTML = '<div class="spinner"></div>';
+  $('#shopHint').textContent = S.shopSet ? `ตั้งแล้ว • ลงเวลาได้ในรัศมี ${S.radius} ม.` : 'ยังไม่ได้ตั้ง — ไปยืนในร้านแล้วกดปุ่มด้านล่าง';
+  try {
+    const d = await api('adminToday');
+    $('#joinCode').textContent = d.joinCode;
+    $('#adminPending').textContent = d.pending ? `📝 มีคำขอรออนุมัติ ${d.pending} รายการ (กดอนุมัติในแชทไลน์)` : '';
+    const map = {
+      done: x => ['g', `${x.in}–${x.out}`], working: x => ['y', `เข้า ${x.in}`], leave: x => ['n', x.leaveType],
+      off: () => ['n', 'วันหยุด'], missing: () => ['r', 'ยังไม่เข้า'],
+    };
+    $('#adminList').innerHTML = d.list.length ? d.list.map(x => {
+      const [c, txt] = map[x.state](x);
+      return `<div class="item"><div><div class="t">${esc(x.label)}</div><div class="s">${esc(x.shift)}${x.late ? ` • สาย ${x.late} น.` : ''}</div></div><span class="chip ${c}">${esc(txt)}</span></div>`;
+    }).join('') : '<div class="empty">ยังไม่มีพนักงาน</div>';
+  } catch (e) { $('#adminList').innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+}
+
+async function doSetShop(b) {
+  if (!confirmBox(b)) return;
+  try {
+    busy('กำลังหาตำแหน่ง GPS...');
+    const pos = await getPos();
+    const r = await api('setShop', pos);
+    S.shopSet = true;
+    done(); toast(r.message); loadAdmin();
+  } catch (e) { done(); toast(e.message, true); }
+}
+function confirmBox(b) {
+  // ไม่ใช้ confirm() ของเบราว์เซอร์ เพื่อไม่ให้ค้างในไลน์ — กดสองครั้งเพื่อยืนยัน
+  if (b.dataset.armed) { delete b.dataset.armed; b.textContent = 'ตั้งตำแหน่งร้าน = จุดที่ยืนอยู่ตอนนี้'; return true; }
+  b.dataset.armed = '1'; b.textContent = 'แน่ใจนะว่าอยู่ในร้าน? กดอีกครั้งเพื่อยืนยัน';
+  setTimeout(() => { if (b.dataset.armed) { delete b.dataset.armed; b.textContent = 'ตั้งตำแหน่งร้าน = จุดที่ยืนอยู่ตอนนี้'; } }, 5000);
+  return false;
+}
+
+/* ---------- ตัวช่วย ---------- */
+function busy(t) { $('#overlayText').textContent = t; $('#overlay').style.display = 'flex'; }
+function done() { $('#overlay').style.display = 'none'; }
+let toastTimer;
+function toast(msg, err) {
+  const t = $('#toast'); t.textContent = msg; t.className = err ? 'err' : ''; t.style.display = 'block';
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.style.display = 'none', err ? 6000 : 3500);
+}
+function ymd(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+function thDate(s) {
+  const m = String(s || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return esc(s);
+  return new Date(+m[1], +m[2] - 1, +m[3]).toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short' });
+}
+
+main();
+</script>
+</body>
+</html>
